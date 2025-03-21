@@ -244,7 +244,7 @@ const ASCIIMapEditor: React.FC = () => {
     borderRadius: '8px',
     padding: '4px',
     overflow: 'auto',
-    height: 'calc(100% - 140px)',
+    height: 'calc(100% - 60px)',
     width: '99%',
     backgroundColor: '#f5f5f5',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
@@ -268,6 +268,18 @@ const ASCIIMapEditor: React.FC = () => {
     };
   }, [width, height, zoom]);
 
+  // Function to generate color based on character ASCII value
+  const getCharColor = useCallback((char: string) => {
+    if (char === ' ') return '#fff'; // White for spaces
+    
+    const asciiCode = char.charCodeAt(0);
+    const hue = (asciiCode * 137.508) % 360; // Golden ratio distribution for nice color spread
+    const saturation = 80 + (asciiCode % 20); // 80-100% saturation
+    const lightness = 75 - (asciiCode % 15); // 60-75% lightness for readability
+    
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }, []);
+
   // Function to render only visible cells (virtualized)
   const renderVisibleCells = useMemo(() => {
     const cellSize = 30 * zoom;
@@ -278,12 +290,14 @@ const ASCIIMapEditor: React.FC = () => {
         if (y < mapData.length && x < mapData[y].length) {
           const char = mapData[y][x];
           const isSpace = char === ' ';
+          const backgroundColor = getCharColor(char);
           
           cells.push(
             <div
               key={`${x}-${y}`}
               style={{
-                backgroundColor: isSpace ? '#fff' : '#fffbe6',
+                backgroundColor,
+                color: isSpace ? '#000' : '#000',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -294,7 +308,8 @@ const ASCIIMapEditor: React.FC = () => {
                 left: `${x * (cellSize + 1 * zoom) + 1 * zoom}px`,
                 cursor: 'pointer',
                 fontSize: `${16 * zoom}px`,
-                fontFamily: 'monospace',
+                fontFamily: '"Space Mono", monospace',
+                fontWeight: 400,
                 userSelect: 'none',
               }}
               onMouseDown={() => handleMouseDown(x, y)}
@@ -318,7 +333,8 @@ const ASCIIMapEditor: React.FC = () => {
     viewportInfo.visibleEndCol, 
     handleMouseDown, 
     handleMouseEnter, 
-    handleMouseUp
+    handleMouseUp,
+    getCharColor
   ]);
 
   return (
@@ -327,14 +343,14 @@ const ASCIIMapEditor: React.FC = () => {
       flexDirection: 'column', 
       alignItems: 'center', 
       width: '100%',
-      height: '90vh',
+      height: '99vh',
       userSelect: 'none'
     }}>
       <h1 style={{
         textAlign: 'center',
         width: '100%',
-        margin: '0 0 20px 0',
-        fontSize: '28px',
+        margin: '0 0 10px 0',
+        fontSize: '24px',
         fontWeight: 'bold',
         color: '#333'
       }}>
@@ -345,7 +361,7 @@ const ASCIIMapEditor: React.FC = () => {
         display: 'flex', 
         flexWrap: 'wrap', 
         gap: '10px', 
-        marginBottom: '10px',
+        marginBottom: '5px',
         justifyContent: 'center',
         userSelect: 'none'
       }}>
@@ -437,7 +453,7 @@ const ASCIIMapEditor: React.FC = () => {
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        marginBottom: '10px', 
+        marginBottom: '5px', 
         gap: '20px' 
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -486,16 +502,6 @@ const ASCIIMapEditor: React.FC = () => {
         <div style={gridStyle}>
           {renderVisibleCells}
         </div>
-      </div>
-      
-      <div style={{ 
-        marginTop: '8px', 
-        fontSize: '12px', 
-        color: '#666',
-        userSelect: 'none'
-      }}>
-        <p>Current size: {width}×{height} characters | Zoom: {zoom.toFixed(1)}x | Brush: {brushSize}×{brushSize}</p>
-        <p>Click and drag to draw on the map</p>
       </div>
     </div>
   );
